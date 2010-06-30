@@ -1,0 +1,16 @@
+Index: configure.ac
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/sptests/configure.ac,v
+retrieving revision 1.92
+diff -u -r1.92 configure.ac
+--- configure.ac	20 Jun 2010 19:48:03 -0000	1.92
++++ configure.ac	24 Jun 2010 07:43:48 -0000
+@@ -115,8 +115,6 @@
+ spfifo01/Makefile
+ spfifo02/Makefile
+ spfifo03/Makefile
+-spfifo04/Makefile
+-spfifo08/Makefile
+ spintrcritical01/Makefile
+ spintrcritical02/Makefile
+ spintrcritical03/Makefile
