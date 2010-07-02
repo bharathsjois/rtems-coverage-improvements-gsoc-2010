@@ -1,0 +1,16 @@
+Index: Makefile.am
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/Makefile.am,v
+retrieving revision 1.62
+diff -u -r1.62 Makefile.am
+--- Makefile.am	28 Jun 2010 18:48:19 -0000	1.62
++++ Makefile.am	1 Jul 2010 07:02:06 -0000
+@@ -20,7 +20,7 @@
+ 
+ ## File IO tests
+ SUBDIRS += psxfile01 psxfile02 psximfs01 psxreaddir psxstat psxmount psx13 \
+-  psxchroot01 psxpasswd01
++  psxchroot01 psxpasswd01 psxpasswd02
+ 
+ ## Until sys/uio.h is moved to libcsupport, we have to have networking
+ ## enabled to support readv and writev.  Hopefully this is a temporary

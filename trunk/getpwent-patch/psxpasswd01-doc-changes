@@ -1,0 +1,25 @@
+Index: psxpasswd01.doc
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxpasswd01/psxpasswd01.doc,v
+retrieving revision 1.1
+diff -u -r1.1 psxpasswd01.doc
+--- psxpasswd01.doc	3 Dec 2009 17:15:02 -0000	1.1
++++ psxpasswd01.doc	1 Jul 2010 07:00:46 -0000
+@@ -18,11 +18,17 @@
+   getpwuid
+   getpwnam_r
+   getpwuid_r
++  getpwent
++  setpwent
++  endpwent
+ 
+   getgrnam
+   getgrgid
+   getgrnam_r
+   getgrgid_r
++  getgrent
++  setgrent
++  endgrent
+ 
+ concepts:
+ 
