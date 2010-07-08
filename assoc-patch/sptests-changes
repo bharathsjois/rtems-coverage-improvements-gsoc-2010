@@ -1,0 +1,30 @@
+Index: Makefile.am
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/sptests/Makefile.am,v
+retrieving revision 1.96
+diff -u -r1.96 Makefile.am
+--- Makefile.am	6 Jul 2010 01:53:08 -0000	1.96
++++ Makefile.am	7 Jul 2010 07:10:36 -0000
+@@ -15,6 +15,7 @@
+     sp50 sp51 sp52 sp53 sp54 sp55 sp56 sp57 sp58 sp59 \
+     sp60 sp61 sp62 sp63 sp64 sp65 sp66 sp67 sp68 sp69 \
+     sp70 sp71 \
++    spassoc01 \
+     spchain spclockget spcoverage spobjgetnext spnotepad01 spprintk spsize \
+     spstkalloc spthreadq01 spwatchdog spwkspace \
+     sperror01 sperror02 sperror03 \
+Index: configure.ac
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/sptests/configure.ac,v
+retrieving revision 1.101
+diff -u -r1.101 configure.ac
+--- configure.ac	6 Jul 2010 01:53:08 -0000	1.101
++++ configure.ac	7 Jul 2010 07:10:36 -0000
+@@ -97,6 +97,7 @@
+ sp69/Makefile
+ sp70/Makefile
+ sp71/Makefile
++spassoc01/Makefile
+ spchain/Makefile
+ spclockget/Makefile
+ spcoverage/Makefile
