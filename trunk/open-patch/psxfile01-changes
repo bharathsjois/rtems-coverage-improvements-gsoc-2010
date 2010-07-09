@@ -1,0 +1,87 @@
+Index: psxfile01.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxfile01/psxfile01.scn,v
+retrieving revision 1.10
+diff -u -r1.10 psxfile01.scn
+--- psxfile01.scn	1 Jul 2010 21:15:07 -0000	1.10
++++ psxfile01.scn	8 Jul 2010 18:00:20 -0000
+@@ -1,12 +1,9 @@
+-sparc-rtems4.11-run is /opt/rtems-4.11/bin/sparc-rtems4.11-run
+-
+ 
+ *** FILE TEST 1 ***
+ *************** Dump of Entire IMFS ***************
+ /
+ ....dev/
+ ........console (device 0, 0)
+-........console_b (device 0, 1)
+ ***************       End of Dump        ***************
+ stat of /dev/console
+ ....st_dev     (0xfffe:0x0)
+@@ -51,6 +48,7 @@
+ Attempt to recreate /tmp/tom
+ create /tmp/john
+ tcdrain /tmp/john
++Attempt to create a file, open in read-only mode and truncate it
+ mknod /tmp/joel
+ (0)the first write!!!
+ 
+@@ -168,9 +166,8 @@
+ /
+ ....dev/
+ ........console (device 0, 0)
+-........console_b (device 0, 1)
+ ........tty/
+-............S3 (device 255, 128)
++............S3 (device 128, 255)
+ ........test_console (device 0, 0)
+ ....etc/
+ ........passwd (file 0)
+@@ -199,9 +196,8 @@
+ /
+ ....dev/
+ ........console (device 0, 0)
+-........console_b (device 0, 1)
+ ........tty/
+-............S3 (device 255, 128)
++............S3 (device 128, 255)
+ ........test_console (device 0, 0)
+ ....etc/
+ ........passwd (file 0)
+@@ -221,9 +217,8 @@
+ /
+ ....dev/
+ ........console (device 0, 0)
+-........console_b (device 0, 1)
+ ........tty/
+-............S3 (device 255, 128)
++............S3 (device 128, 255)
+ ........test_console (device 0, 0)
+ ....etc/
+ ........passwd (file 0)
+Index: test.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxfile01/test.c,v
+retrieving revision 1.25
+diff -u -r1.25 test.c
+--- test.c	1 Jul 2010 21:15:07 -0000	1.25
++++ test.c	8 Jul 2010 18:00:20 -0000
+@@ -329,6 +329,18 @@
+   status = tcdrain( fd );
+   rtems_test_assert( status == 0 );
+ 
++  /* 
++   * Open a file in read-only mode and try to truncate
++   */
++
++  puts( "Attempt to create a file, open in read-only mode and truncate it" );
++  fd = open( "/tmp/bha", O_CREAT | O_RDONLY | O_TRUNC, S_IRUSR );
++  rtems_test_assert( fd == -1 );
++  rtems_test_assert( errno == EINVAL );
++
++  status = unlink( "/tmp/bha" );
++  rtems_test_assert( status == 0 );
++
+   /*
+    *  Test simple write to a file at offset 0
+    */
