@@ -1,0 +1,4 @@
+2010-07-08	Bharath Suri <bharath.s.jois@gmail.com>
+
+	* psxfile01/init.c: Add a simple test case: Open file as read-only
+	and attemp to truncate. Improves coverage.
