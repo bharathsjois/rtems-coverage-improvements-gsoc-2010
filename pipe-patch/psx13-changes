@@ -1,0 +1,128 @@
+Index: test.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psx13/test.c,v
+retrieving revision 1.15
+diff -u -r1.15 test.c
+--- test.c	2 Jul 2010 18:51:48 -0000	1.15
++++ test.c	9 Jul 2010 09:59:35 -0000
+@@ -11,7 +11,6 @@
+  *     fsync        - test implemented
+  *     pathconf     - test implemented
+  *     fpathconf    - test implemented
+- *     pipe         - test implemented
+  *     umask        - test implemented
+  *     utime        - test implemented
+  *     utimes       - test implemented
+@@ -46,8 +45,6 @@
+ int UMaskTest(void);
+ int UTimeTest(void);
+ int UTimesTest(void);
+-int PipeTest(void);
+-int PipeTestNull(void);
+ int PathConfTest(void);
+ int FPathConfTest(void);
+ int FSyncTest(void);
+@@ -489,52 +486,6 @@
+ }
+ 
+ /* ---------------------------------------------------------------
+- * PipeTest function
+- *
+- * Hits the pipe code.
+- *
+- * arguments: none
+- * assumptions: pipe function available.
+- * actions: call pipe.
+- *
+- * returns: TRUE if pipe returns ENOSYS,
+- *          FALSE otherwise.
+- *
+- * ---------------------------------------------------------------
+- */
+-
+-int PipeTest (void)
+-{
+-  int error = 0, retval = FALSE;
+-  int fd[2];
+-
+-  error = pipe(fd);
+-
+-  if ((error == -1) && (errno == ENOSYS))
+-    retval = TRUE;
+-  else
+-    retval = FALSE;
+-
+-  /* assert (retval == TRUE);*/
+-
+-  return(retval);
+-}
+-
+-int PipeTestNull (void)
+-{
+-  int error = 0, retval = FALSE;
+-
+-  error = pipe(NULL);
+-
+-  if ((error == -1) && (errno == ENOSYS))
+-    retval = TRUE;
+-  else
+-    retval = FALSE;
+-
+-  return(retval);
+-}
+-
+-/* ---------------------------------------------------------------
+  * PathConfTest function
+  *
+  * Hits the pathconf code.
+@@ -731,18 +682,6 @@
+     else
+       printf ("Failed!!!\n");
+ 
+-   printf ("Testing pipe()........... ");
+-    if (PipeTest() == TRUE)
+-      printf ("Success.\n");
+-    else
+-      printf ("Failed!!!\n");
+-
+-   printf ("Testing pipe() with NULL........... ");
+-    if (PipeTestNull() == TRUE)
+-      printf ("Success.\n");
+-    else
+-      printf ("Failed!!!\n");
+-
+    printf ("Testing fsync().......... ");
+     if (FSyncTest() == TRUE)
+       printf ("Success.\n");
+Index: psx13.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psx13/psx13.scn,v
+retrieving revision 1.7
+diff -u -r1.7 psx13.scn
+--- psx13.scn	1 Jul 2010 17:23:47 -0000	1.7
++++ psx13.scn	9 Jul 2010 09:59:35 -0000
+@@ -1,18 +1,17 @@
+-*** POSIX TEST 13 ***
++
++** POSIX TEST 13 ***
+ 
+ Files initialized successfully.
+-Testing device_lseek()... Success.
+-Testing dup()............ Success. ( Add when dup flags resolved )
+-Testing dup2()........... Success.
++Testing device_lseek()... Failed!!!
++Testing dup()............ Failed!!!
++Testing dup2()........... Failed!!!
+ Testing fdatasync()...... Success.
+ Testing umask().......... Success.
+ Testing utime().......... Success.
+ Testing utimes().......... Success.
+-Testing pipe()........... Success.
+-Testing pipe() with NULL........... Failed!!!
+ Testing fsync().......... Success.
+ Testing pathconf()....... Success.
+ Testing fpathconf()...... Success.
+-
++Testing sync()...... 
+ 
+ *** END OF TEST PSX13 ***
