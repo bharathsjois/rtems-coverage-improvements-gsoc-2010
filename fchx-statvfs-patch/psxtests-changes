@@ -1,0 +1,31 @@
+Index: configure.ac
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/configure.ac,v
+retrieving revision 1.70
+diff -u -r1.70 configure.ac
+--- configure.ac	9 Jul 2010 22:07:11 -0000	1.70
++++ configure.ac	11 Jul 2010 18:30:52 -0000
+@@ -86,6 +86,7 @@
+ psxenosys/Makefile
+ psxfatal01/Makefile
+ psxfatal02/Makefile
++psxfchx01/Makefile
+ psxfile01/Makefile
+ psxfile02/Makefile
+ psxfilelock01/Makefile
+Index: Makefile.am
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/Makefile.am,v
+retrieving revision 1.66
+diff -u -r1.66 Makefile.am
+--- Makefile.am	9 Jul 2010 22:07:11 -0000	1.66
++++ Makefile.am	11 Jul 2010 18:30:52 -0000
+@@ -21,7 +21,7 @@
+ ## File IO tests
+ SUBDIRS += psxfile01 psxfile02 psxfilelock01 psxgetrusage01 psxid01 \
+     psximfs01 psxreaddir psxstat psxmount psx13 psxchroot01 psxpasswd01 \
+-    psxpasswd02 psxpipe01 psxtimes01
++    psxpasswd02 psxpipe01 psxtimes01 psxfchx01
+ 
+ ## Until sys/uio.h is moved to libcsupport, we have to have networking
+ ## enabled to support readv and writev.  Hopefully this is a temporary
