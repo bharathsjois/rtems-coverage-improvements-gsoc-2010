@@ -1,0 +1,78 @@
+Index: psxchroot01.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxchroot01/psxchroot01.scn,v
+retrieving revision 1.2
+diff -u -r1.2 psxchroot01.scn
+--- psxchroot01.scn	9 Aug 2001 22:02:20 -0000	1.2
++++ psxchroot01.scn	16 Jul 2010 16:08:13 -0000
+@@ -1,6 +1,8 @@
+ 
+-
+ *** CHROOT01 TEST ***
++allocate most of memory - attempt to fail chroot - expect ENOTSUP
++freeing the allocated memory
++chroot with bad path - expect EFAULT
+ SUCCESS on /one/one.test
+ SUCCESS on /two/two.test
+ Reset the private environment
+Index: test.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxchroot01/test.c,v
+retrieving revision 1.8
+diff -u -r1.8 test.c
+--- test.c	8 Dec 2009 17:52:53 -0000	1.8
++++ test.c	16 Jul 2010 16:08:14 -0000
+@@ -34,6 +34,7 @@
+ #include <rtems/libio.h>
+ #include <rtems/userenv.h>
+ #include <pmacros.h>
++#include <rtems/score/heap.h>
+ 
+ void touch( char *file )
+ {
+@@ -72,13 +73,17 @@
+ #endif
+ {
+   int status;
+-
++  void *alloc_ptr = (void *)0;
++  Heap_Information_block Info;
++  extern Heap_Control  *RTEMS_Malloc_Heap;
+ /*
+  *  This test is the C equivalent of this sequence.
+ #mkdir /one
+ #mkdir /one/one
+ #touch /one/one.test
+ #touch /one/two/two.test
++# an error case to ENOTSUP from chroot
++# chroot
+ #chroot /one
+ #if !fileexists(/one/one.test) echo "SUCCESSFUL"
+ #if fileexists(/two/two.test) echo "SUCCESSFUL"
+@@ -101,8 +106,25 @@
+   touch( "/one/one.test" );
+   touch( "/one/two/two.test" );
+ 
++  puts( "allocate most of memory - attempt to fail chroot - expect ENOTSUP" );
++  _Heap_Get_information(RTEMS_Malloc_Heap, &Info);
++  alloc_ptr = malloc( Info.Free.largest - 4 );
++  rtems_test_assert( alloc_ptr != NULL );
++
+   status = chroot( "/one" );
+-  rtems_test_assert(  status == 0 );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == ENOTSUP );
++
++  puts( "freeing the allocated memory" );
++  free( alloc_ptr );
++
++  puts( "chroot with bad path - expect EFAULT" );
++  status = chroot( NULL );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EFAULT );
++
++  status = chroot( "/one" );
++  rtems_test_assert( status == 0 );
+ 
+   status = fileexists( "/one/one.test" );
+   printf( "%s on /one/one.test\n", (!status) ? "SUCCESS" : "FAILURE" );
