@@ -1,0 +1,171 @@
+Index: libtests/malloctest/init.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/libtests/malloctest/init.c,v
+retrieving revision 1.40
+diff -u -r1.40 init.c
+--- libtests/malloctest/init.c	28 Jun 2010 17:05:25 -0000	1.40
++++ libtests/malloctest/init.c	15 Jul 2010 06:53:47 -0000
+@@ -112,6 +112,8 @@
+    *  Realloc with a bad pointer to force a point
+    */
+   p4 = realloc( test_realloc, 32 );
++
++  p4 = _realloc_r( NULL, NULL, 1 );
+ }
+ 
+ #define TEST_HEAP_SIZE 2048
+Index: psxtests/psxfile01/psxfile01.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxfile01/psxfile01.scn,v
+retrieving revision 1.11
+diff -u -r1.11 psxfile01.scn
+--- psxtests/psxfile01/psxfile01.scn	8 Jul 2010 19:37:00 -0000	1.11
++++ psxtests/psxfile01/psxfile01.scn	15 Jul 2010 06:53:48 -0000
+@@ -49,6 +49,8 @@
+ create /tmp/john
+ tcdrain /tmp/john
+ Attempt to create a file, open in read-only mode and truncate it
++Exercise the reentrant version _link_r -- Expect EFAULT
++Unlink /tmp/bha using the reentrant version -- OK
+ mknod /tmp/joel
+ (0)the first write!!!
+ 
+Index: psxtests/psxfile01/test.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxfile01/test.c,v
+retrieving revision 1.26
+diff -u -r1.26 test.c
+--- psxtests/psxfile01/test.c	8 Jul 2010 19:37:01 -0000	1.26
++++ psxtests/psxfile01/test.c	15 Jul 2010 06:53:48 -0000
+@@ -338,7 +338,13 @@
+   rtems_test_assert( fd == -1 );
+   rtems_test_assert( errno == EINVAL );
+ 
+-  status = unlink( "/tmp/bha" );
++  puts( "Exercise the reentrant version _link_r -- Expect EFAULT" );
++  status = _link_r( NULL, NULL, NULL );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EFAULT );
++
++  puts( "Unlink /tmp/bha using the reentrant version -- OK" );
++  status = _unlink_r( NULL, "/tmp/bha" );
+   rtems_test_assert( status == 0 );
+ 
+   /*
+Index: psxtests/psxstat/psxstat.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxstat/psxstat.scn,v
+retrieving revision 1.11
+diff -u -r1.11 psxstat.scn
+--- psxtests/psxstat/psxstat.scn	13 Jul 2010 21:13:12 -0000	1.11
++++ psxtests/psxstat/psxstat.scn	15 Jul 2010 06:53:49 -0000
+@@ -1708,6 +1708,8 @@
+ create /tmp -- OK
+ statvfs, with valid path - expect ENOTSUP
+ statvfs tested!
++Exercise the reentrant version - _stat_r - expect EFAULT
++Exercise the reentrant version - _lstat_r - expect EFAULT
+ 
+ 
+ *** END OF STAT TEST 01 ***
+Index: psxtests/psxstat/test.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxstat/test.c,v
+retrieving revision 1.28
+diff -u -r1.28 test.c
+--- psxtests/psxstat/test.c	13 Jul 2010 21:13:13 -0000	1.28
++++ psxtests/psxstat/test.c	15 Jul 2010 06:53:50 -0000
+@@ -927,6 +927,16 @@
+ 
+   test_statvfs();
+ 
++  puts( "Exercise the reentrant version - _stat_r - expect EFAULT" );
++  status = _stat_r( NULL, NULL, NULL );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EFAULT );
++
++  puts( "Exercise the reentrant version - _lstat_r - expect EFAULT" );
++  status = _lstat_r( NULL, NULL, NULL );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EFAULT );
++
+   puts( "\n\n*** END OF STAT TEST 01 ***" );
+   rtems_test_exit(0);
+ }
+Index: psxtests/psxtime/psxtime.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxtime/psxtime.scn,v
+retrieving revision 1.7
+diff -u -r1.7 psxtime.scn
+--- psxtests/psxtime/psxtime.scn	28 Jun 2010 21:00:15 -0000	1.7
++++ psxtests/psxtime/psxtime.scn	15 Jul 2010 06:53:50 -0000
+@@ -1,5 +1,7 @@
++
+ *** POSIX TIME OF DAY TEST ***
+ gettimeofday( NULL, NULL ) - EFAULT
++_gettimeofday( NULL, NULL ) - EFAULT
+ rtems_clock_set          12:45:00   01/01/1988
+ adjtime - NULL delta - EINVAL
+ adjtime - delta out of range - EINVAL
+@@ -9,7 +11,7 @@
+ adjtime - delta of one second forward
+ adjtime - delta of almost two seconds forward
+ adjtime - delta of almost one second forward which bumps second
+-rtems_clock_get_tod          12:45:04   01/01/1988
++rtems_clock_get_tod          12:45:05   01/01/1988
+ rtems_clock_set          12:45:00   01/01/1988
+ rtems_clock_get_tod          12:45:00   01/01/1988
+ gettimeofday: Fri Jan  1 12:45:00 1988
+Index: psxtests/psxtime/test.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxtime/test.c,v
+retrieving revision 1.17
+diff -u -r1.17 test.c
+--- psxtests/psxtime/test.c	28 Jun 2010 21:00:15 -0000	1.17
++++ psxtests/psxtime/test.c	15 Jul 2010 06:53:50 -0000
+@@ -202,6 +202,11 @@
+   rtems_test_assert( sc == -1 );
+   rtems_test_assert( errno == EFAULT );
+ 
++  puts( "_gettimeofday( NULL, NULL ) - EFAULT" );
++  sc = _gettimeofday( NULL, NULL );
++  rtems_test_assert( sc == -1 );
++  rtems_test_assert( errno == EFAULT );
++
+   test_adjtime();
+ 
+   /*
+Index: sptests/Makefile.am
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/sptests/Makefile.am,v
+retrieving revision 1.99
+diff -u -r1.99 Makefile.am
+--- sptests/Makefile.am	8 Jul 2010 19:39:11 -0000	1.99
++++ sptests/Makefile.am	15 Jul 2010 06:53:50 -0000
+@@ -27,7 +27,7 @@
+     spintrcritical05 spintrcritical06 spintrcritical07 spintrcritical08 \
+     spintrcritical09 spintrcritical10 spintrcritical11 spintrcritical12 \
+     spintrcritical13 spintrcritical14 spintrcritical15 spintrcritical16 \
+-    spintrcritical17 spmkdir
++    spintrcritical17 spmkdir spmountmgr01
+  
+ DIST_SUBDIRS = $(SUBDIRS) spfatal_support spintrcritical_support
+ EXTRA_DIST = spfatal_support/init.c spfatal_support/system.h
+Index: sptests/configure.ac
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/sptests/configure.ac,v
+retrieving revision 1.104
+diff -u -r1.104 configure.ac
+--- sptests/configure.ac	8 Jul 2010 19:39:12 -0000	1.104
++++ sptests/configure.ac	15 Jul 2010 06:53:50 -0000
+@@ -147,9 +147,11 @@
+ spintrcritical16/Makefile
+ spintrcritical17/Makefile
+ spmkdir/Makefile
++spmountmgr01/Makefile
+ spnotepad01/Makefile
+ spobjgetnext/Makefile
+ spprintk/Makefile
+ spsize/Makefile
+ spstkalloc/Makefile
+ spthreadq01/Makefile
