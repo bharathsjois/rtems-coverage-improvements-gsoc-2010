@@ -1,0 +1,77 @@
+Index: init.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/sptests/spmountmgr01/init.c,v
+retrieving revision 1.1
+diff -u -r1.1 init.c
+--- init.c	15 Jul 2010 13:53:28 -0000	1.1
++++ init.c	16 Jul 2010 14:38:13 -0000
+@@ -50,6 +50,27 @@
+   status = rtems_filesystem_register( "fs", fs_mount );
+   rtems_test_assert( status == 0 );
+ 
++  puts( "Init - attempt to make target(NULL) and mount - expect EINVAL" );
++  status = mount_and_make_target_path(
++	     NULL,
++	     NULL,
++	     "fs",
++	     0,
++	     NULL );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EINVAL );
++
++  puts( "Init - attempt to make target and mount - expect EINVAL" );
++  status = mount_and_make_target_path(
++	     NULL,
++	     "/tmp",
++	     "fs",
++	     2,
++	     NULL );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EINVAL );
++
++	     
+   puts( "Init - register filesystem fs - expect EINVAL" );
+   status = rtems_filesystem_register( "fs", fs_mount );
+   rtems_test_assert( status == -1 );
+Index: spmountmgr01.doc
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/sptests/spmountmgr01/spmountmgr01.doc,v
+retrieving revision 1.1
+diff -u -r1.1 spmountmgr01.doc
+--- spmountmgr01.doc	15 Jul 2010 13:53:28 -0000	1.1
++++ spmountmgr01.doc	16 Jul 2010 14:38:13 -0000
+@@ -17,9 +17,13 @@
+ 
+ + rtems_filesystem_register
+ + rtems_filesystem_unregister
+++ mount_and_make_target_path
+ 
+ concepts:
+ 
+-+ Exercise the routines of mount-mgr.c under libcsupport.
+-+ These routines are mostly to register / unregister new filesytem
+++ Exercise the routines of mount-mgr.c and mount-mktgt.c under libcsupport.
+++ The routines in mount-mgr.c are mostly to register / unregister new filesytem
+   for later use.
+++ The routines in mount-mktgt.c are used to mount a filesystem at a
++target path. If the target path does not exist, it is created and then
++the mount is processed
+Index: spmountmgr01.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/sptests/spmountmgr01/spmountmgr01.scn,v
+retrieving revision 1.1
+diff -u -r1.1 spmountmgr01.scn
+--- spmountmgr01.scn	15 Jul 2010 13:53:28 -0000	1.1
++++ spmountmgr01.scn	16 Jul 2010 14:38:13 -0000
+@@ -1,8 +1,11 @@
++
+ *** TEST MOUNT MANAGER ROUTINE - 01 ***
+ Init - allocating most of heap -- OK
+ Init - attempt to register filesystem fs - expect ENOMEM
+ Init - freeing allocated memory -- OK
+ Init - register filesystem fs -- OK
++Init - attempt to make target(NULL) and mount - expect EINVAL
++Init - attempt to make target and mount - expect EINVAL
+ Init - register filesystem fs - expect EINVAL
+ Init - register filesystem bfs -- OK
+ Init - register filesystem bfs - expect EINVAL
