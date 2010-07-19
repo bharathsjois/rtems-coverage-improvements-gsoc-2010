@@ -1,0 +1,8 @@
+2010-07-15	Bharath Suri <bharath.s.jois@gmail.com>
+
+	PR 1617/testing
+	* spmountmgr01/init.c, spmountmgr01/Makefile.am,
+	spmountmgr01/spmountmgr01.doc, spmountmgr01/spmountmgr01.scn: New
+	tests which improve coverage of mount-mgr.c under libcsupport.
+
+	* Makefile.am, configure.ac: Changes to accommodate the new test.
