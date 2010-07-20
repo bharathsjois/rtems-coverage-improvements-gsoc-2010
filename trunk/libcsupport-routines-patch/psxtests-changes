@@ -1,0 +1,271 @@
+Index: psx13/psx13.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psx13/psx13.scn,v
+retrieving revision 1.8
+diff -u -r1.8 psx13.scn
+--- psx13/psx13.scn	9 Jul 2010 22:07:11 -0000	1.8
++++ psx13/psx13.scn	19 Jul 2010 05:02:45 -0000
+@@ -1,5 +1,5 @@
+ 
+-** POSIX TEST 13 ***
++*** POSIX TEST 13 ***
+ 
+ Files initialized successfully.
+ Testing device_lseek()... Failed!!!
+Index: psx13/test.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psx13/test.c,v
+retrieving revision 1.16
+diff -u -r1.16 test.c
+--- psx13/test.c	9 Jul 2010 22:07:11 -0000	1.16
++++ psx13/test.c	19 Jul 2010 05:02:45 -0000
+@@ -415,9 +415,11 @@
+       else
+ 	retval = FALSE;
+     }
+-
+     else
+       retval = FALSE;
++
++    error = utime("testfile1.tst", NULL );
++    retval &= (error == 0) ? TRUE : FALSE;
+   }
+ 
+   /* assert (retval == TRUE);*/
+@@ -563,6 +565,12 @@
+     error = fpathconf(fd, _PC_SYNC_IO);
+     error = fpathconf(fd, 255);
+ 
++    close(fd);
++
++    fd = open("testfile1.tst", O_WRONLY);
++    
++    error = fpathconf(fd, _PC_LINK_MAX);
++
+     retval = TRUE;
+   }
+ 
+Index: psxfile01/psxfile01.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxfile01/psxfile01.scn,v
+retrieving revision 1.12
+diff -u -r1.12 psxfile01.scn
+--- psxfile01/psxfile01.scn	15 Jul 2010 13:59:25 -0000	1.12
++++ psxfile01/psxfile01.scn	19 Jul 2010 05:02:46 -0000
+@@ -1,3 +1,4 @@
++
+ *** FILE TEST 1 ***
+ *************** Dump of Entire IMFS ***************
+ /
+@@ -30,6 +31,8 @@
+ rmdir /usr
+ rmdir /dev
+ rmdir /fred
++rmdir /tmp/bha
++unlink /dev/tty
+ mknod /dev/test_console
+ mknod /dev/tty/S3
+ mknod /etc/passwd
+@@ -48,8 +51,17 @@
+ create /tmp/john
+ tcdrain /tmp/john
+ Attempt to create a file, open in read-only mode and truncate it
+-Exercise the reentrant version _link_r -- Expect EFAULT
++Exercise the reentrant version _link_r -- Expect ENOENT
+ Unlink /tmp/bha using the reentrant version -- OK
++mknod with bad type - expect EINVAL
++open /tmp/bha in write only mode -- OK
++attempt to read from /tmp/bha - expect EINVAL
++closing and unlinking /tmp/bha
++open /tmp/bha in read only mode -- OK
++attempt to read from /tmp/bha - expect EINVAL
++closing and unlinking /tmp/bha
++attempt to read from an unopened filedes - expect EBADF
++attempt to write to an unopened filedes - expect EBADF
+ mknod /tmp/joel
+ (0)the first write!!!
+ 
+@@ -73,7 +85,7 @@
+ 
+ stat( /tmp/joel ) returned 
+ ....st_dev     (0xfffe:0x0)
+-....st_ino     13  may vary by small amount
++....st_ino     15  may vary by small amount
+ ....mode  = 00100700
+ ....nlink = 1
+ ....uid = 0
+@@ -106,7 +118,7 @@
+ That is likely to be bigger than the available RAM on many targets.
+ stat( /tmp/joel ) returned 
+ ....st_dev     (0xfffe:0x0)
+-....st_ino     14  may vary by small amount
++....st_ino     16  may vary by small amount
+ ....mode  = 00100700
+ ....nlink = 1
+ ....uid = 0
+@@ -137,7 +149,7 @@
+ (4) 26 characters written to the file
+ (5) 26 characters written to the file
+ ....st_dev     (0xfffe:0x0)
+-....st_ino     15  may vary by small amount
++....st_ino     17  may vary by small amount
+ ....mode  = 00100644
+ ....nlink = 1
+ ....uid = 0
+@@ -153,7 +165,7 @@
+ This is call 4 to fprintf
+ This is call 5 to fprintf
+ ....st_dev     (0xfffe:0x0)
+-....st_ino     15  may vary by small amount
++....st_ino     17  may vary by small amount
+ ....mode  = 00100644
+ ....nlink = 1
+ ....uid = 0
+@@ -183,7 +195,7 @@
+ ***************       End of Dump        ***************
+ truncate /tmp/j to length of 40
+ ....st_dev     (0xfffe:0x0)
+-....st_ino     15  may vary by small amount
++....st_ino     17  may vary by small amount
+ ....mode  = 00100644
+ ....nlink = 1
+ ....uid = 0
+Index: psxfile01/test.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxfile01/test.c,v
+retrieving revision 1.28
+diff -u -r1.28 test.c
+--- psxfile01/test.c	16 Jul 2010 09:23:42 -0000	1.28
++++ psxfile01/test.c	19 Jul 2010 05:02:46 -0000
+@@ -244,6 +244,16 @@
+   rtems_test_assert (status == -1);
+   rtems_test_assert( errno == ENOENT );
+ 
++  puts( "rmdir /tmp/bha" );
++  status = rmdir( "/tmp/bha" );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == ENOENT );
++
++  puts( "unlink /dev/tty" );
++  status = unlink( "/dev/tty" );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EISDIR );
++
+   puts( "mknod /dev/test_console" );
+   status = mknod( "/dev/test_console", S_IFCHR, 0LL );
+   rtems_test_assert( !status );
+@@ -339,16 +349,70 @@
+   rtems_test_assert( fd == -1 );
+   rtems_test_assert( errno == EINVAL );
+ 
+-  puts( "Exercise the reentrant version _link_r -- Expect EEXIST" );
+-  status = _link_r( NULL, "", "" );
++  puts( "Exercise the reentrant version _link_r -- Expect ENOENT" );
++  status = _link_r( NULL, "/tmp/notexist", "/tmp/cannotexist" );
+   rtems_test_assert( status == -1 );
+-  rtems_test_assert( errno == EEXIST );
++  rtems_test_assert( errno == ENOENT );
+ 
+   puts( "Unlink /tmp/bha using the reentrant version -- OK" );
+   status = _unlink_r( NULL, "/tmp/bha" );
+   rtems_test_assert( status == 0 );
+ 
+   /*
++   * Simple test case for mknod
++   */
++
++  puts( "mknod with bad type - expect EINVAL" );
++  status = mknod( "/tmp/bha", 0, 0LL );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EINVAL );
++
++  /* 
++   * Read from filedes opened for write
++   */
++
++  puts( "open /tmp/bha in write only mode -- OK" );
++  fd = open( "/tmp/bha", O_CREAT | O_WRONLY, S_IRWXU|S_IRWXG|S_IRWXO );
++  rtems_test_assert( fd != -1 );
++  
++  puts( "attempt to read from /tmp/bha - expect EINVAL" );
++  status = read( fd, buffer, 10 );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EINVAL );
++
++  puts( "closing and unlinking /tmp/bha" );
++  status = close( fd );
++  status |= unlink( "/tmp/bha" );
++  rtems_test_assert( status == 0 );
++
++  puts( "open /tmp/bha in read only mode -- OK" );
++  fd = open( "/tmp/bha", O_CREAT | O_RDONLY, S_IRWXU|S_IRWXG|S_IRWXO );
++  rtems_test_assert( fd != -1 );
++  
++  puts( "attempt to read from /tmp/bha - expect EINVAL" );
++  status = write( fd, buffer, 10 );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EINVAL );
++
++  puts( "closing and unlinking /tmp/bha" );
++  status = close( fd );
++  status |= unlink( "/tmp/bha" );
++  rtems_test_assert( status == 0 );
++
++  /* 
++   * Read/write from an unopened filedes
++   */
++  puts( "attempt to read from an unopened filedes - expect EBADF" );
++  status = read( 5, buffer, 10 );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EBADF );
++
++  puts( "attempt to write to an unopened filedes - expect EBADF" );
++  status = write( 5, buffer, 10 );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EBADF );
++
++  /*
+    *  Test simple write to a file at offset 0
+    */
+ 
+Index: psxstat/psxstat.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxstat/psxstat.scn,v
+retrieving revision 1.12
+diff -u -r1.12 psxstat.scn
+--- psxstat/psxstat.scn	15 Jul 2010 13:59:25 -0000	1.12
++++ psxstat/psxstat.scn	19 Jul 2010 05:02:47 -0000
+@@ -1704,12 +1704,13 @@
+ ...st_ctime   Sat Dec 31 09:00:35 1988
+ ...st_blksize 0
+ ...st_blocks  0
+-statvfs, with invalid path - expect EFAULT
++statvfs, with invalid path - expect ENOTSUP
+ create /tmp -- OK
+ statvfs, with valid path - expect ENOTSUP
+ statvfs tested!
+ Exercise the reentrant version - _stat_r - expect EFAULT
+ Exercise the reentrant version - _lstat_r - expect EFAULT
++Try readlink with a bad buffer - expect EFAULT
+ 
+ 
+ *** END OF STAT TEST 01 ***
+Index: psxstat/test.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxstat/test.c,v
+retrieving revision 1.30
+diff -u -r1.30 test.c
+--- psxstat/test.c	15 Jul 2010 13:59:25 -0000	1.30
++++ psxstat/test.c	19 Jul 2010 05:02:48 -0000
+@@ -939,6 +939,11 @@
+   rtems_test_assert( status == -1 );
+   rtems_test_assert( errno == EFAULT );
+ 
++  puts( "Try readlink with a bad buffer - expect EFAULT" );
++  status = readlink( "/tmp", NULL, 0 );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EFAULT );
++
+   puts( "\n\n*** END OF STAT TEST 01 ***" );
+   rtems_test_exit(0);
+ }
