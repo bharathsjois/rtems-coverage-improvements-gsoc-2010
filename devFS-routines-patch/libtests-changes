@@ -1,0 +1,33 @@
+Index: Makefile.am
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/libtests/Makefile.am,v
+retrieving revision 1.41
+diff -u -r1.41 Makefile.am
+--- Makefile.am	19 Jul 2010 13:54:46 -0000	1.41
++++ Makefile.am	22 Jul 2010 04:25:46 -0000
+@@ -6,7 +6,7 @@
+ 
+ SUBDIRS = POSIX
+ 
+-SUBDIRS += bspcmdline01 cpuuse devfs01 gxx01 \
++SUBDIRS += bspcmdline01 cpuuse devfs01 devfs02 devfs03 devfs04 gxx01 \
+     malloctest malloc02 malloc03 malloc04 malloc05 heapwalk \
+     putenvtest monitor monitor02 rtmonuse stackchk stackchk01 \
+     termios termios01 termios02 termios03 termios04 termios05 \
+Index: configure.ac
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/libtests/configure.ac,v
+retrieving revision 1.48
+diff -u -r1.48 configure.ac
+--- configure.ac	19 Jul 2010 13:54:46 -0000	1.48
++++ configure.ac	22 Jul 2010 04:25:46 -0000
+@@ -46,6 +46,9 @@
+ bspcmdline01/Makefile
+ cpuuse/Makefile
+ devfs01/Makefile
++devfs02/Makefile
++devfs03/Makefile
++devfs04/Makefile
+ gxx01/Makefile
+ heapwalk/Makefile
+ malloctest/Makefile
