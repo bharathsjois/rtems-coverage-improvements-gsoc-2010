@@ -1,0 +1,6 @@
+2010-07-29	Bharath Suri <bharath.s.jois@gmail.com>
+
+	* psximfs02/init.c, psximfs02/psximfs02.scn,
+	psximfs02/psximfs02.doc, psximfs02/Makefile.am: New test added.
+	* configure.ac, Makefile.am: Changes to accommodate psximfs02
+	test.
