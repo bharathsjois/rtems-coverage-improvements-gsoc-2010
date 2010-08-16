@@ -1,0 +1,5 @@
+2010-08-10	Bharath Suri <bharath.s.jois@gmail.com>
+
+	PR 1663/testing
+	* spmkdir/init.c: New cases to get the error path in rtems_mkdir
+	routine.
