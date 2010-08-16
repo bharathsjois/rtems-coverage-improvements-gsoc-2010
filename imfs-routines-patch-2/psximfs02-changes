@@ -1,0 +1,120 @@
+Index: init.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psximfs02/init.c,v
+retrieving revision 1.1
+diff -u -r1.1 init.c
+--- init.c	29 Jul 2010 22:40:50 -0000	1.1
++++ init.c	30 Jul 2010 13:47:58 -0000
+@@ -20,7 +20,7 @@
+ #include <rtems/libio.h>
+ 
+ extern Heap_Control  *RTEMS_Malloc_Heap;
+-
++void IMFS_dump( void );
+ rtems_task Init(
+   rtems_task_argument argument
+ )
+@@ -129,13 +129,39 @@
+   rtems_test_assert( status == -1 );
+   rtems_test_assert( errno == ENOMEM );
+ 
++  puts( "Freeing allocated memory" );
++  free( alloc_ptr );
++
+   puts( "Attempt to stat a hardlink -- expect ENOTSUP" );
+   status = lstat( "/node-link", &stat_buf );
+   rtems_test_assert( status == -1 );
+   rtems_test_assert( errno == ENOTSUP );
+ 
++  puts( "Changing euid to 10" );
++  status = seteuid( 10 );
++  rtems_test_assert( status == 0 );
++
++  puts( "Attempt chmod on /node -- expect EPERM" );
++  status = chmod( "/node", S_IRUSR );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EPERM );
++
++  puts( "Attempt chown on /node -- expect EPERM" );
++  status = chown( "/node", 10, 10 );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == EPERM );
++
++  puts( "Changing euid back to 0 [root]" );
++  status = seteuid( 0 );
++  rtems_test_assert( status == 0 );
++
++  puts( "Creating a fifo -- OK" );
++  status = mkfifo( "/fifo", S_IRWXU );
++  rtems_test_assert( status == 0 );
++
++  IMFS_dump();
++  
+   puts( "*** END OF TEST IMFS 02 ***" );
+-  rtems_test_exit(0);
+ }
+ 
+ /* configuration information */
+@@ -149,5 +175,8 @@
+ 
+ #define CONFIGURE_INIT
+ 
++#define CONFIGURE_FIFOS_ENABLED
++#define CONFIGURE_MAXIMUM_FIFOS 1
++
+ #include <rtems/confdefs.h>
+ /* end of file */
+Index: psximfs02.doc
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psximfs02/psximfs02.doc,v
+retrieving revision 1.1
+diff -u -r1.1 psximfs02.doc
+--- psximfs02.doc	29 Jul 2010 22:40:50 -0000	1.1
++++ psximfs02.doc	30 Jul 2010 13:47:58 -0000
+@@ -22,6 +22,9 @@
+   + symlink
+   + mount
+   + lstat
++  + IMFS_dump
++  + chmod
++  + chown
+ 
+ concepts:
+ 
+Index: psximfs02.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psximfs02/psximfs02.scn,v
+retrieving revision 1.1
+diff -u -r1.1 psximfs02.scn
+--- psximfs02.scn	29 Jul 2010 22:40:50 -0000	1.1
++++ psximfs02.scn	30 Jul 2010 13:47:58 -0000
+@@ -33,5 +33,29 @@
+ Freeing allocated memory
+ Allocate most of heap
+ Attempt to create /node-slink-2 for /node -- expect ENOMEM
++Freeing allocated memory
+ Attempt to stat a hardlink -- expect ENOTSUP
++Changing euid to 10
++Attempt chmod on /node -- expect EPERM
++Attempt chown on /node -- expect EPERM
++Changing euid back to 0 [root]
++Creating a fifo -- OK
++*************** Dump of Entire IMFS ***************
++/
++....dev/
++........console (device 0, 0)
++....dir00/
++........dir01/
++........dir01-link0 links not printed
++........dir01-link1 links not printed
++........dir01-link2 links not printed
++........dir01-link3 links not printed
++........dir01-link4 links not printed
++........dir01-link5 links not printed
++........dir01-link6 links not printed
++....node (file 0)
++....node-link links not printed
++....node-slink links not printed
++....fifo FIFO not printed
++***************       End of Dump        ***************
+ *** END OF TEST IMFS 02 ***
