@@ -1,0 +1,81 @@
+Index: init.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/sptests/spmkdir/init.c,v
+retrieving revision 1.2
+diff -u -r1.2 init.c
+--- init.c	10 Aug 2010 17:34:12 -0000	1.2
++++ init.c	10 Aug 2010 17:55:52 -0000
+@@ -54,29 +54,44 @@
+ 
+   puts("\n\n*** TEST SPMKDIR ***");
+ 
++  puts( "rtems_mkdir a - OK" );
+   test_mkdir("a", omode, 0);
++  puts( "rtems_mkdir a/b - OK" );
+   test_mkdir("a/b", omode, 0);
++  puts( "rtems_mkdir a/b/c/d/e/f/g/h/i - OK" );
+   test_mkdir("a/b/c/d/e/f/g/h/i", omode, 0);
++  puts( "rtems_mkdir a/b/c - OK" );
+   test_mkdir("a/b/c", omode, 0);
++  puts( "rtems_mkdir a/b/c/1 - OK" );
+   test_mkdir("a/b/c/1", 0, 0);
++  puts( "rtems_mkdir a/b/c/2 - OK" );
+   test_mkdir("a/b/c/2", S_IRWXU, 0);
++  puts( "rtems_mkdir a/b/c/3 - OK" );
+   test_mkdir("a/b/c/3", S_IRWXG, 0);
++  puts( "rtems_mkdir a/b/c/4 - OK" );
+   test_mkdir("a/b/c/4", S_IRWXO, 0);
++  puts( "rtems_mkdir a/b - OK" );
+   test_mkdir("a/b", omode, 0);
++  puts( "rtems_mkdir a - OK" );
+   test_mkdir("a", omode, 0);
++  puts( "rtems_mkdir a/b/x - OK" );
+   test_mkdir("a/b/x", S_IRUSR, 0);
++  puts( "rtems_mkdir a/b/x/y - expect failure" );
+   test_mkdir("a/b/x/y", S_IRUSR, -1);
+-  
++  puts( "mknod regular file a/n - OK" );  
+   rv = mknod("a/n", S_IRWXU | S_IFREG, 0LL);
+-
++  puts( "rtems_mkdir a/n/b - expect failure" );
+   test_mkdir("a/n/b", S_IRUSR, -1);
+ 
++  puts( "Create node b and open in RDONLY mode - OK" );
+   rv = open ("b", O_CREAT | O_RDONLY, omode);
+   rtems_test_assert(rv >= 0);
+ 
++  puts( "Closing b - OK" );
+   rv = close(rv);
+   rtems_test_assert(rv == 0);
+ 
++  puts( "rtems_mkdir b - expect failure" );
+   test_mkdir("b", omode, -1);
+   rtems_test_assert(errno == EEXIST);
+ 
+Index: spmkdir.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/sptests/spmkdir/spmkdir.scn,v
+retrieving revision 1.1
+diff -u -r1.1 spmkdir.scn
+--- spmkdir.scn	8 Jun 2010 13:22:58 -0000	1.1
++++ spmkdir.scn	10 Aug 2010 17:55:52 -0000
+@@ -1,2 +1,19 @@
+ *** TEST SPMKDIR ***
++rtems_mkdir a - OK
++rtems_mkdir a/b - OK
++rtems_mkdir a/b/c/d/e/f/g/h/i - OK
++rtems_mkdir a/b/c - OK
++rtems_mkdir a/b/c/1 - OK
++rtems_mkdir a/b/c/2 - OK
++rtems_mkdir a/b/c/3 - OK
++rtems_mkdir a/b/c/4 - OK
++rtems_mkdir a/b - OK
++rtems_mkdir a - OK
++rtems_mkdir a/b/x - OK
++rtems_mkdir a/b/x/y - expect failure
++mknod regular file a/n - OK
++rtems_mkdir a/n/b - expect failure
++Create node b and open in RDONLY mode - OK
++Closing b - OK
++rtems_mkdir b - expect failure
+ *** END OF TEST SPMKDIR ***
