@@ -1,0 +1,371 @@
+Index: testsuites/libtests/Makefile.am
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/libtests/Makefile.am,v
+retrieving revision 1.46
+diff -u -r1.46 Makefile.am
+--- testsuites/libtests/Makefile.am	2 Aug 2010 18:17:10 -0000	1.46
++++ testsuites/libtests/Makefile.am	6 Aug 2010 07:28:26 -0000
+@@ -7,7 +7,7 @@
+ SUBDIRS = POSIX
+ 
+ SUBDIRS += bspcmdline01 cpuuse devfs01 devfs02 devfs03 devfs04 \
+-    devnullfatal01 dumpbuf01 gxx01 gxx02 \
++    deviceio01 devnullfatal01 dumpbuf01 gxx01 gxx02 \
+     malloctest malloc02 malloc03 malloc04 malloc05 heapwalk \
+     putenvtest monitor monitor02 rtmonuse stackchk stackchk01 \
+     termios termios01 termios02 termios03 termios04 termios05 \
+Index: testsuites/libtests/configure.ac
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/libtests/configure.ac,v
+retrieving revision 1.54
+diff -u -r1.54 configure.ac
+--- testsuites/libtests/configure.ac	2 Aug 2010 18:17:10 -0000	1.54
++++ testsuites/libtests/configure.ac	6 Aug 2010 07:28:26 -0000
+@@ -53,6 +53,7 @@
+ devfs02/Makefile
+ devfs03/Makefile
+ devfs04/Makefile
++deviceio01/Makefile
+ devnullfatal01/Makefile
+ dumpbuf01/Makefile
+ gxx01/Makefile
+Index: testsuites/libtests/tar02/init.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/libtests/tar02/init.c,v
+retrieving revision 1.1
+diff -u -r1.1 init.c
+--- testsuites/libtests/tar02/init.c	27 Jul 2010 18:16:50 -0000	1.1
++++ testsuites/libtests/tar02/init.c	6 Aug 2010 07:28:26 -0000
+@@ -63,6 +63,7 @@
+   printf( "\n\n*** TAR02 TEST ***\n" );
+ 
+   test_tarfs_load();
++  IMFS_dump();
+ 
+   printf( "*** END OF TAR02 TEST ***\n" );
+   exit( 0 );
+Index: testsuites/libtests/tar02/tar02.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/libtests/tar02/tar02.scn,v
+retrieving revision 1.1
+diff -u -r1.1 tar02.scn
+--- testsuites/libtests/tar02/tar02.scn	27 Jul 2010 18:16:50 -0000	1.1
++++ testsuites/libtests/tar02/tar02.scn	6 Aug 2010 07:28:26 -0000
+@@ -5,4 +5,11 @@
+ initial tar image.
+ 
+ *** Skipping symlink -- NOT CURRENTLY SUPPORTED ***
++*************** Dump of Entire IMFS ***************
++/
++....dev/
++........console (device 0, 0)
++....home/
++........test_file (file 73 0x12022c)
++***************      End of Dump       ***************
+ *** END OF TAR02 TEST ***
+Index: testsuites/psxtests/psx13/psx13.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psx13/psx13.scn,v
+retrieving revision 1.9
+diff -u -r1.9 psx13.scn
+--- testsuites/psxtests/psx13/psx13.scn	19 Jul 2010 13:13:20 -0000	1.9
++++ testsuites/psxtests/psx13/psx13.scn	6 Aug 2010 07:28:27 -0000
+@@ -1,10 +1,9 @@
+-
+ *** POSIX TEST 13 ***
+ 
+ Files initialized successfully.
+ Testing device_lseek()... Failed!!!
+ Testing dup()............ Failed!!!
+-Testing dup2()........... Failed!!!
++Testing dup2()........... Success.
+ Testing fdatasync()...... Success.
+ Testing umask().......... Success.
+ Testing utime().......... Success.
+Index: testsuites/psxtests/psx13/test.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psx13/test.c,v
+retrieving revision 1.17
+diff -u -r1.17 test.c
+--- testsuites/psxtests/psx13/test.c	19 Jul 2010 13:13:20 -0000	1.17
++++ testsuites/psxtests/psx13/test.c	6 Aug 2010 07:28:27 -0000
+@@ -142,7 +142,7 @@
+   else
+     retval = FALSE;
+ 
+-  /* assert (retval == TRUE);*/
++  close( fd );  /* assert (retval == TRUE);*/
+ 
+   return (retval);
+ }
+@@ -187,6 +187,8 @@
+   else
+     retval = FALSE;
+ 
++  close( fd1 );
++  close( fd2 );
+   /* assert (retval == TRUE);*/
+ 
+   return (retval);
+@@ -257,7 +259,7 @@
+   }
+ 
+   close (fd1);
+-
++  close (fd2);
+   /* assert (retval == TRUE);*/
+ 
+   return (retval);
+Index: testsuites/psxtests/psxfile01/psxfile01.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxfile01/psxfile01.scn,v
+retrieving revision 1.13
+diff -u -r1.13 psxfile01.scn
+--- testsuites/psxtests/psxfile01/psxfile01.scn	19 Jul 2010 13:13:20 -0000	1.13
++++ testsuites/psxtests/psxfile01/psxfile01.scn	6 Aug 2010 07:28:27 -0000
+@@ -1,10 +1,9 @@
+-
+ *** FILE TEST 1 ***
+ *************** Dump of Entire IMFS ***************
+ /
+ ....dev/
+ ........console (device 0, 0)
+-***************       End of Dump        ***************
++***************      End of Dump       ***************
+ stat of /dev/console
+ ....st_dev     (0xfffe:0x0)
+ ....st_ino     3  may vary by small amount
+@@ -55,6 +54,7 @@
+ Unlink /tmp/bha using the reentrant version -- OK
+ mknod with bad type - expect EINVAL
+ open /tmp/bha in write only mode -- OK
++attempt fcntl on opened file -- OK
+ attempt to read from /tmp/bha - expect EINVAL
+ closing and unlinking /tmp/bha
+ open /tmp/bha in read only mode -- OK
+@@ -192,7 +192,7 @@
+ ........j (file 130)
+ ....imfs/
+ ........hidden_on_mount/
+-***************       End of Dump        ***************
++***************      End of Dump       ***************
+ truncate /tmp/j to length of 40
+ ....st_dev     (0xfffe:0x0)
+ ....st_ino     17  may vary by small amount
+@@ -221,7 +221,7 @@
+ ........j (file 40)
+ ....imfs/
+ ........hidden_on_mount/
+-***************       End of Dump        ***************
++***************      End of Dump       ***************
+ truncate /tmp/j to length of 0
+ truncate /tmp to length of 0 should fail with EISDIR
+ 
+@@ -242,7 +242,7 @@
+ ........j (file 0)
+ ....imfs/
+ ........hidden_on_mount/
+-***************       End of Dump        ***************
++***************      End of Dump       ***************
+ Writing First File
+ Writing Second File
+ (0)this is a test line
+Index: testsuites/psxtests/psxfile01/test.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxfile01/test.c,v
+retrieving revision 1.29
+diff -u -r1.29 test.c
+--- testsuites/psxtests/psxfile01/test.c	19 Jul 2010 13:13:20 -0000	1.29
++++ testsuites/psxtests/psxfile01/test.c	6 Aug 2010 07:28:28 -0000
+@@ -374,7 +374,11 @@
+   puts( "open /tmp/bha in write only mode -- OK" );
+   fd = open( "/tmp/bha", O_CREAT | O_WRONLY, S_IRWXU|S_IRWXG|S_IRWXO );
+   rtems_test_assert( fd != -1 );
+-  
++
++  puts( "attempt fcntl on opened file -- OK" );
++  status = fcntl( fd, F_SETFD, 0 );
++  rtems_test_assert( status == 0 );
++
+   puts( "attempt to read from /tmp/bha - expect EINVAL" );
+   status = read( fd, buffer, 10 );
+   rtems_test_assert( status == -1 );
+Index: testsuites/psxtests/psximfs01/init.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psximfs01/init.c,v
+retrieving revision 1.4
+diff -u -r1.4 init.c
+--- testsuites/psxtests/psximfs01/init.c	29 Jul 2010 22:35:36 -0000	1.4
++++ testsuites/psxtests/psximfs01/init.c	6 Aug 2010 07:28:28 -0000
+@@ -147,7 +147,6 @@
+ 
+   position = lseek( TestFd, 0, SEEK_END );
+   printf( "Seek to end .. returned %d\n", (int) position );
+-  rtems_test_assert( position == 1 );
+ 
+   /* 
+    * test case to ftruncate a file to a length > its size 
+@@ -179,6 +178,7 @@
+ 	  rc,
+ 	  strerror( errno )
+         );
++	break;
+       }
+       else {
+ 	break;
+@@ -216,6 +216,8 @@
+   int i;
+   void *alloc_ptr = (void *)0;
+   Heap_Information_block Info;
++  int position = 0;
++  int status = 0;
+ 
+   puts( "\n\n*** TEST IMFS 01 ***" );
+ 
+@@ -248,6 +250,12 @@
+    */
+   free(alloc_ptr);
+ 
++  extend_helper();
++  position = lseek( TestFd , 0, SEEK_END );
++  status = lseek( TestFd, position+2, SEEK_SET );
++  rtems_test_assert( status == -1 );
++  rtems_test_assert( errno == ENOSPC );
++
+   close_it();
+   unlink_it();
+ 
+Index: testsuites/psxtests/psximfs01/psximfs01.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psximfs01/psximfs01.scn,v
+retrieving revision 1.2
+diff -u -r1.2 psximfs01.scn
+--- testsuites/psxtests/psximfs01/psximfs01.scn	29 Jul 2010 22:35:36 -0000	1.2
++++ testsuites/psxtests/psximfs01/psximfs01.scn	6 Aug 2010 07:28:28 -0000
+@@ -14,6 +14,8 @@
+ lseek/ftruncate loop..
+ Seek to end .. returned 1
+ lseek/ftruncate loop..
++Seek to end .. returned 1295
++lseek/ftruncate loop..
+ close(biggie) - OK 
+ unlink(biggie) - OK
+ *** END OF TEST IMFS 01 ***
+Index: testsuites/psxtests/psximfs02/init.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psximfs02/init.c,v
+retrieving revision 1.2
+diff -u -r1.2 init.c
+--- testsuites/psxtests/psximfs02/init.c	2 Aug 2010 18:19:35 -0000	1.2
++++ testsuites/psxtests/psximfs02/init.c	6 Aug 2010 07:28:28 -0000
+@@ -161,6 +161,22 @@
+ 
+   IMFS_dump();
+   
++  puts( "chown /fifo to 10 -- OK" );
++  status = chown( "/fifo", 10, 10 );
++  rtems_test_assert( status == 0 );
++
++  puts( "Changing euid to 10" );
++  status = seteuid( 10 );
++  rtems_test_assert( status == 0 );
++
++  puts( "chmod /fifo -- OK" );
++  status = chmod( "/fifo", S_IRWXU );
++  rtems_test_assert( status == 0 );
++
++  printk( "chown /fifo to %o -- OK", 0 );
++  status = chown( "/fifo", 0, 0 );
++  rtems_test_assert( status == 0 );
++
+   puts( "*** END OF TEST IMFS 02 ***" );
+   rtems_test_exit(0);
+ }
+Index: testsuites/psxtests/psximfs02/psximfs02.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psximfs02/psximfs02.scn,v
+retrieving revision 1.2
+diff -u -r1.2 psximfs02.scn
+--- testsuites/psxtests/psximfs02/psximfs02.scn	2 Aug 2010 18:19:35 -0000	1.2
++++ testsuites/psxtests/psximfs02/psximfs02.scn	6 Aug 2010 07:28:28 -0000
+@@ -57,5 +57,8 @@
+ ....node-link links not printed
+ ....node-slink links not printed
+ ....fifo FIFO not printed
+-***************       End of Dump        ***************
+-*** END OF TEST IMFS 02 ***
++***************      End of Dump       ***************
++chown /fifo to 10 -- OK
++Changing euid to 10
++chmod /fifo -- OK
++chown /fifo to 0 -- OK*** END OF TEST IMFS 02 ***
+Index: testsuites/psxtests/psxpasswd02/init.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxpasswd02/init.c,v
+retrieving revision 1.1
+diff -u -r1.1 init.c
+--- testsuites/psxtests/psxpasswd02/init.c	1 Jul 2010 17:26:35 -0000	1.1
++++ testsuites/psxtests/psxpasswd02/init.c	6 Aug 2010 07:28:29 -0000
+@@ -17,6 +17,7 @@
+ #include <unistd.h>
+ #include <fcntl.h>
+ #include <errno.h>
++#include <limits.h>
+ 
+ void print_passwd(
+   struct passwd *pw
+@@ -63,6 +64,9 @@
+   struct passwd *pw;
+   struct group  *gr;
+   int status = -1;
++  char str[100] = {0};
++  int max_int = INT_MAX;
++  int limit_value = 0;
+ 
+   FILE *fp = NULL;
+ 
+@@ -127,6 +131,28 @@
+   rtems_test_assert( !pw ); 
+   rtems_test_assert( errno == EINVAL );
+ 
++  fp = fopen( "/etc/passwd", "w" );
++  rtems_test_assert( fp != NULL );
++  fprintf( fp, "user:x:999999999999:1:dummy::/:/bin/sh\n" );
++  fclose( fp );
++
++  puts( "Init - getpwnam(\"root\") -- expected EINVAL" );
++  pw = getpwnam( "root" );
++  rtems_test_assert( !pw ); 
++  rtems_test_assert( errno == EINVAL );
++
++  sprintf( str, "user:x:%d%d:1:dummy::/:/bin/sh\n", max_int/10, max_int%10+1 );
++
++  fp = fopen( "/etc/passwd", "w" );
++  rtems_test_assert( fp != NULL );
++  fprintf( fp, str );
++  fclose( fp );
++
++  puts( "Init - getpwnam(\"root\") -- expected EINVAL" );
++  pw = getpwnam( "root" );
++  rtems_test_assert( !pw ); 
++  rtems_test_assert( errno == EINVAL );
++
+   puts( "Init - getgrent() -- OK" );
+   gr = getgrent();
+   rtems_test_assert( gr != NULL );
+Index: testsuites/psxtests/psxpasswd02/psxpasswd02.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psxpasswd02/psxpasswd02.scn,v
+retrieving revision 1.1
+diff -u -r1.1 psxpasswd02.scn
+--- testsuites/psxtests/psxpasswd02/psxpasswd02.scn	1 Jul 2010 17:26:37 -0000	1.1
++++ testsuites/psxtests/psxpasswd02/psxpasswd02.scn	6 Aug 2010 07:28:29 -0000
+@@ -9,6 +9,8 @@
+ Init - getpwnam("root") -- expected EINVAL
+ Init - getpwnam("root") -- expected EINVAL
+ Init - getpwnam("root") -- expected EINVAL
++Init - getpwnam("root") -- expected EINVAL
++Init - getpwnam("root") -- expected EINVAL
+ Init - getgrent() -- OK
+   group name: admin
+   group  password: 
