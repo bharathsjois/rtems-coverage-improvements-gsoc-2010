@@ -1,0 +1,8 @@
+2010-07-29	Bharath Suri <bharath.s.jois@gmail.com>
+
+	PR 1621/testing
+	* spprivenv01/init.c, spprivenv01/spprivenv01.doc,
+	spprivenv01/spprivenv01.scn, spprivenv01/Makefile.am: New test
+	added.
+	* configure.ac, Makefile.am: Changes to accommodate new test
+	spprivenv01.
