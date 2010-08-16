@@ -1,0 +1,323 @@
+Index: libtests/termios01/init.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/libtests/termios01/init.c,v
+retrieving revision 1.11
+diff -u -r1.11 init.c
+--- libtests/termios01/init.c	14 Jul 2010 15:59:37 -0000	1.11
++++ libtests/termios01/init.c	9 Aug 2010 11:17:40 -0000
+@@ -462,6 +462,7 @@
+   rtems_device_major_number registered;
+   int                       test;
+   struct termios            t;
++  int index = 0;
+ 
+   puts( "\n\n*** TEST TERMIOS 01 ***" );
+ 
+@@ -469,21 +470,9 @@
+   test_termios_baud2number();
+   test_termios_number_to_baud();
+ 
+-  /*
+-   * tcsetattr - ERROR invalid operation
+-   */
+-  puts( "tcsetattr - invalid operation - ENOTSUP" );
+-  rc = tcsetattr( 0, 0x12345, &t );
+-  rtems_test_assert( rc == -1 );
+-  rtems_test_assert( errno == ENOTSUP );
+-  
+-  /*
+-   * tcsetattr - TCSADRAIN
+-   */
+-  puts( "\ntcsetattr - drain - OK" );
+-  rc = tcsetattr( 1, TCSADRAIN, &t );
+-  rtems_test_assert( rc == 0 );
+-  
++  sc = rtems_termios_bufsize( 256, 138, 64 );
++  directive_failed( sc, "rtems_termios_bufsize" );
++
+   /*
+    * Register a driver
+    */
+@@ -505,6 +494,21 @@
+     rtems_test_exit(0);
+   }
+ 
++  /*
++   * tcsetattr - ERROR invalid operation
++   */
++  puts( "tcsetattr - invalid operation - ENOTSUP" );
++  rc = tcsetattr( test, 0x12345, &t );
++  rtems_test_assert( rc == -1 );
++  rtems_test_assert( errno == ENOTSUP );
++  
++  /*
++   * tcsetattr - TCSADRAIN
++   */
++  puts( "\ntcsetattr - drain - OK" );
++  rc = tcsetattr( test, TCSADRAIN, &t );
++  rtems_test_assert( rc == 0 );
++
+   test_termios_set_baud(test);
+ 
+   puts( "Init - close - " TERMIOS_TEST_DRIVER_DEVICE_NAME " - OK" );
+@@ -588,6 +592,22 @@
+     rtems_test_exit(0);
+   }
+ 
++  /*
++  TODO: This must be enabled, but is facing a strange problem 
++  where the code dies off at rtems_termios_open.
++  */
++
++  /*
++  puts( "Multiple open of the device" );
++  for( ; index < 26; ++index ) {
++    printf( "...%d ", index );
++    test = open( TERMIOS_TEST_DRIVER_DEVICE_NAME, O_RDWR );
++    rtems_test_assert( test != -1 );
++    rc = close( test );
++    rtems_test_assert( rc == 0 );
++  }
++  puts( "" );
++  */
+   puts( "*** END OF TEST TERMIOS 01 ***" );
+   rtems_test_exit(0);
+ }
+Index: libtests/termios01/termios01.scn
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/libtests/termios01/termios01.scn,v
+retrieving revision 1.5
+diff -u -r1.5 termios01.scn
+--- libtests/termios01/termios01.scn	14 Jul 2010 15:59:37 -0000	1.5
++++ libtests/termios01/termios01.scn	9 Aug 2010 11:17:40 -0000
+@@ -32,7 +32,7 @@
+ termios_baud_to_number(B110) - OK
+ termios_baud_to_number(B134) - OK
+ termios_baud_to_number(B150) - OK
+-termios_baud_to_number(B200) - O
++termios_baud_to_number(B200) - OK
+ termios_baud_to_number(B300) - OK
+ termios_baud_to_number(B600) - OK
+ termios_baud_to_number(B1200) - OK
+@@ -70,9 +70,6 @@
+ termios_number_to_baud(B115200) - OK
+ termios_number_to_baud(B230400) - OK
+ termios_number_to_baud(B460800) - OK
+-tcsetattr - invalid operation - ENOTSUP
+-
+-tcsetattr - drain - OK
+ 
+ Init - rtems_io_register_driver - Termios Test Driver - OK
+ Termios_test_driver - rtems_io_register /dev/test - OK
+@@ -80,87 +77,91 @@
+ Init - open - /dev/test - OK
+ Termios_test_driver - rtems_set_initial_baud - bad baud - OK
+ Termios_test_driver - rtems_set_initial_baud - 38400 - OK
++tcsetattr - invalid operation - ENOTSUP
++
++tcsetattr - drain - OK
++set_attributes - B0 5-NONE-1
+ Test termios setting device baud rate...
+ tcsetattr(TCSANOW, B0) - OK
+-set_attributes - B0 8-NONE-1
++set_attributes - B0 5-NONE-1
+ tcsetattr(TCSADRAIN, B0) - OK
+-set_attributes - B0 8-NONE-1
++set_attributes - B0 5-NONE-1
+ tcsetattr(TCSANOW, B50) - OK
+-set_attributes - B50 8-NONE-1
++set_attributes - B50 5-NONE-1
+ tcsetattr(TCSADRAIN, B50) - OK
+-set_attributes - B50 8-NONE-1
++set_attributes - B50 5-NONE-1
+ tcsetattr(TCSANOW, B75) - OK
+-set_attributes - B75 8-NONE-1
++set_attributes - B75 5-NONE-1
+ tcsetattr(TCSADRAIN, B75) - OK
+-set_attributes - B75 8-NONE-1
++set_attributes - B75 5-NONE-1
+ tcsetattr(TCSANOW, B110) - OK
+-set_attributes - B110 8-NONE-1
++set_attributes - B110 5-NONE-1
+ tcsetattr(TCSADRAIN, B110) - OK
+-set_attributes - B110 8-NONE-1
++set_attributes - B110 5-NONE-1
+ tcsetattr(TCSANOW, B134) - OK
+-set_attributes - B134 8-NONE-1
++set_attributes - B134 5-NONE-1
+ tcsetattr(TCSADRAIN, B134) - OK
+-set_attributes - B134 8-NONE-1
++set_attributes - B134 5-NONE-1
+ tcsetattr(TCSANOW, B150) - OK
+-set_attributes - B150 8-NONE-1
++set_attributes - B150 5-NONE-1
+ tcsetattr(TCSADRAIN, B150) - OK
+-set_attributes - B150 8-NONE-1
++set_attributes - B150 5-NONE-1
+ tcsetattr(TCSANOW, B200) - OK
+-set_attributes - B200 8-NONE-1
++set_attributes - B200 5-NONE-1
+ tcsetattr(TCSADRAIN, B200) - OK
+-set_attributes - B200 8-NONE-1
++set_attributes - B200 5-NONE-1
+ tcsetattr(TCSANOW, B300) - OK
+-set_attributes - B300 8-NONE-1
++set_attributes - B300 5-NONE-1
+ tcsetattr(TCSADRAIN, B300) - OK
+-set_attributes - B300 8-NONE-1
++set_attributes - B300 5-NONE-1
+ tcsetattr(TCSANOW, B600) - OK
+-set_attributes - B600 8-NONE-1
++set_attributes - B600 5-NONE-1
+ tcsetattr(TCSADRAIN, B600) - OK
+-set_attributes - B600 8-NONE-1
++set_attributes - B600 5-NONE-1
+ tcsetattr(TCSANOW, B1200) - OK
+-set_attributes - B1200 8-NONE-1
++set_attributes - B1200 5-NONE-1
+ tcsetattr(TCSADRAIN, B1200) - OK
+-set_attributes - B1200 8-NONE-1
++set_attributes - B1200 5-NONE-1
+ tcsetattr(TCSANOW, B1800) - OK
+-set_attributes - B1800 8-NONE-1
++set_attributes - B1800 5-NONE-1
+ tcsetattr(TCSADRAIN, B1800) - OK
+-set_attributes - B1800 8-NONE-1
++set_attributes - B1800 5-NONE-1
+ tcsetattr(TCSANOW, B2400) - OK
+-set_attributes - B2400 8-NONE-1
++set_attributes - B2400 5-NONE-1
+ tcsetattr(TCSADRAIN, B2400) - OK
+-set_attributes - B2400 8-NONE-1
++set_attributes - B2400 5-NONE-1
+ tcsetattr(TCSANOW, B4800) - OK
+-set_attributes - B4800 8-NONE-1
++set_attributes - B4800 5-NONE-1
+ tcsetattr(TCSADRAIN, B4800) - OK
+-set_attributes - B4800 8-NONE-1
++set_attributes - B4800 5-NONE-1
+ tcsetattr(TCSANOW, B9600) - OK
+-set_attributes - B9600 8-NONE-1
++set_attributes - B9600 5-NONE-1
+ tcsetattr(TCSADRAIN, B9600) - OK
+-set_attributes - B9600 8-NONE-1
++set_attributes - B9600 5-NONE-1
+ tcsetattr(TCSANOW, B19200) - OK
+-set_attributes - B19200 8-NONE-1
++set_attributes - B19200 5-NONE-1
+ tcsetattr(TCSADRAIN, B19200) - OK
+-set_attributes - B19200 8-NONE-1
++set_attributes - B19200 5-NONE-1
+ tcsetattr(TCSANOW, B38400) - OK
+-set_attributes - B38400 8-NONE-1
++set_attributes - B38400 5-NONE-1
+ tcsetattr(TCSADRAIN, B38400) - OK
+-set_attributes - B38400 8-NONE-1
++set_attributes - B38400 5-NONE-1
+ tcsetattr(TCSANOW, B57600) - OK
+-set_attributes - B57600 8-NONE-1
++set_attributes - B57600 5-NONE-1
+ tcsetattr(TCSADRAIN, B57600) - OK
+-set_attributes - B57600 8-NONE-1
++set_attributes - B57600 5-NONE-1
+ tcsetattr(TCSANOW, B115200) - OK
+-set_attributes - B115200 8-NONE-1
++set_attributes - B115200 5-NONE-1
+ tcsetattr(TCSADRAIN, B115200) - OK
+-set_attributes - B115200 8-NONE-1
++set_attributes - B115200 5-NONE-1
+ tcsetattr(TCSANOW, B230400) - OK
+-set_attributes - B230400 8-NONE-1
++set_attributes - B230400 5-NONE-1
+ tcsetattr(TCSADRAIN, B230400) - OK
+-set_attributes - B230400 8-NONE-1
++set_attributes - B230400 5-NONE-1
+ tcsetattr(TCSANOW, B460800) - OK
+-set_attributes - B460800 8-NONE-1
++set_attributes - B460800 5-NONE-1
+ tcsetattr(TCSADRAIN, B460800) - OK
+-set_attributes - B460800 8-NONE-1
++set_attributes - B460800 5-NONE-1
+ Init - close - /dev/test - OK
+ 
+ Init - open - /dev/test - OK
+Index: libtests/termios01/termios_testdriver.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/libtests/termios01/termios_testdriver.c,v
+retrieving revision 1.7
+diff -u -r1.7 termios_testdriver.c
+--- libtests/termios01/termios_testdriver.c	10 Dec 2009 14:26:32 -0000	1.7
++++ libtests/termios01/termios_testdriver.c	9 Aug 2010 11:17:40 -0000
+@@ -138,6 +138,12 @@
+   rtems_status_code sc;
+   int               rc;
+   rtems_libio_open_close_args_t *args = arg;
++  void *alloc_ptr = (void *)0;
++  Heap_Information_block Info;
++  static int test = 0;
++  
++  extern Heap_Control  *RTEMS_Malloc_Heap;
++
+   static const rtems_termios_callbacks Callbacks = {
+     NULL,                                    /* firstOpen */
+     NULL,                                    /* lastClose */
+@@ -154,6 +160,44 @@
+     rtems_test_exit(0);
+   }
+ 
++  if( test == 0 ) {
++    _Heap_Get_information( RTEMS_Malloc_Heap, &Info );
++    alloc_ptr = malloc( Info.Free.largest - 4 );
++    
++    sc = rtems_termios_open (major, minor, arg, &Callbacks);
++    rtems_test_assert( sc == RTEMS_NO_MEMORY );
++    
++    free( alloc_ptr );
++    _Heap_Get_information( RTEMS_Malloc_Heap, &Info );
++    alloc_ptr = malloc( Info.Free.largest - 4 - 10 -
++			sizeof( struct rtems_termios_tty ) );
++    
++    sc = rtems_termios_open (major, minor, arg, &Callbacks);
++    rtems_test_assert( sc == RTEMS_NO_MEMORY );
++    
++    free( alloc_ptr );
++    _Heap_Get_information( RTEMS_Malloc_Heap, &Info );
++    alloc_ptr = malloc( Info.Free.largest - 4 - 20 -
++			sizeof( struct rtems_termios_tty ) -
++			128 );
++    
++    sc = rtems_termios_open (major, minor, arg, &Callbacks);
++    rtems_test_assert( sc == RTEMS_NO_MEMORY );
++    
++    free( alloc_ptr );
++    _Heap_Get_information( RTEMS_Malloc_Heap, &Info );
++    alloc_ptr = malloc( Info.Free.largest - 4 - 20 -
++			sizeof( struct rtems_termios_tty ) -
++			128 -
++			80 );
++    
++    sc = rtems_termios_open (major, minor, arg, &Callbacks);
++    rtems_test_assert( sc == RTEMS_NO_MEMORY );
++    
++    free( alloc_ptr );
++    test = 1;
++  }
++  
+   sc = rtems_termios_open (major, minor, arg, &Callbacks);
+   directive_failed( sc, "rtems_termios_open" );
+ 
+Index: psxtests/psximfs02/init.c
+===================================================================
+RCS file: /usr1/CVS/rtems/testsuites/psxtests/psximfs02/init.c,v
+retrieving revision 1.3
+diff -u -r1.3 init.c
+--- psxtests/psximfs02/init.c	7 Aug 2010 00:22:46 -0000	1.3
++++ psxtests/psximfs02/init.c	9 Aug 2010 11:17:41 -0000
+@@ -187,6 +187,7 @@
+ #define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
+ 
+ #define CONFIGURE_MAXIMUM_TASKS                  1
++#define CONFIGURE_IMFS_MEMFILE_BYTES_PER_BLOCK   15
+ #define CONFIGURE_LIBIO_MAXIMUM_FILE_DESCRIPTORS 4
+ #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
+ 
